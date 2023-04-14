@@ -1,17 +1,32 @@
 
 
 
+def get_values_rank():
+    values = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+    valuesR = {}
+    for (i,v) in enumerate(values):
+        valuesR[v] = i
+    return valuesR
+
+
+values_rank = get_values_rank()
+
 def detect_tuple( hand: str ):
     items = hand.split() 
     result = []
     for (i,c) in enumerate(items[:-1]):
-        n = 0
+        n = 1
         for d in items[i+1:]: 
             if c[0]==d[0]:
                 n=n+1
-        if n>0:
+        if n>1:
             result.append( (n, c[0] ))
     return result
+
+def sort_cards( hand: str ): 
+    items = hand.split()
+    return sorted( items, key= lambda a: values_rank[a[0]]) 
+
 
 
                 
@@ -35,6 +50,10 @@ def player_1_wins( line ):
     hand1 = line[0:k]
     hand2 = line[k:]
 
+    k1 = sort_cards( hand1 )
+    k2 = sort_cards( hand2 )
+
+    print( "hand1", hand1, "sorted_hand_1", k1 )
     print( "hand1", hand1, detect_tuple(hand1), "hand2", hand2, detect_tuple(hand2))
     
 
