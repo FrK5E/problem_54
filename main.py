@@ -27,16 +27,18 @@ def detect_tuple( cards: list[Card] ):
 def sort_cards( hand: list[Card] ) -> list[Card]: 
     return sorted( hand, key= lambda a: values_rank[a[0]]) 
 
+
 def is_flush( hand: list[Card] ) -> bool: 
     first_card_suite = hand[0][1]
     for ( i, c) in enumerate( hand[1:]):
-        if i[1]!=first_card_suite: 
+        if c[1]!=first_card_suite: 
             return False  
     return True
 
-def is_straight( hand: list[Card]) -> bool: 
-    k = values_rank[hand[0][0]]
-    for (i,c) in enumerate( hand[1:]):
+def is_straight( hand: list[Card]) -> bool:
+    hand2 = sort_cards( hand ) 
+    k = values_rank[hand2[0][0]]
+    for (i,c) in enumerate( hand2[1:]):
         k1 = values_rank[c[0]]
         if k+i+1 != k1: 
             return False
@@ -55,7 +57,19 @@ class Tests(unittest.TestCase):
         hand1 = sort_cards( hand )
         self.assertEqual(hand1, "2C 6S JC JH QS".split())
 
+    def test_is_flush(self):
+        hand = "JC QS JH 2C 6S".split()
+        self.assertEqual(is_flush(hand), False)
+        hand = "JC QC 2C 7C 6C".split()
+        self.assertEqual( is_flush(hand), True )
 
+    def test_is_straight(self):
+        hand = "2C 3S 4H 5C 6S".split()
+        self.assertEqual( is_straight(hand=hand), True )
+        hand = "4H 5C 6S 2C 3S".split()
+        self.assertEqual( is_straight(hand=hand), True )
+        hand = "2C 3S 4H 5C AS".split()
+        self.assertEqual( is_straight(hand=hand), False )
 
 #def get_rank( hand: str ): 
     # 1: high card
@@ -87,7 +101,7 @@ def player_1_wins( line ):
 if __name__=="__main__":
 
     r = unittest.main( exit=False, failfast=True)
-    if len(r.result.failures)>0: 
+    if len(r.result.failures) or len(r.result.errors)>0: 
         sys.exit(1) 
 
 
