@@ -13,16 +13,34 @@ values_rank = get_values_rank()
 
 Card = str
 
-def detect_tuple( cards: list[Card] ):
-    result = [] 
-    for (i,c) in enumerate(cards[:-1]):
-        n = 1
-        for d in cards[i+1:]: 
-            if c[0]==d[0]:
-                n=n+1
-        if n>1:
-            result.append( (n, c[0] ))
-    return result
+class Ranking: 
+    def __init__(self, hand ): 
+        self.primary_sign = 100
+        tuples = detect_tuple(hand)
+        if is_royal_flush(hand): 
+            self.primary_sign = 0
+            self.secondary_sign = []
+        elif is_straight(hand) and is_flush(hand):
+            hand1 = sort_cards(hand) 
+            self.primary_sign = 1 
+            self.secondary_sign = values_rank[ hand1[0][0] ]
+        
+
+
+def detect_tuple( hand: list[Card] ):
+    result = []
+    trial = {}  
+    for c in hand:
+        key = c[0]
+        if key not in trial:
+            trial[key] = set()
+        trial[key].add( c )
+        
+    for k in trial.keys(): 
+        if len( trial[k])>1: 
+            result.append( (len(trial[k]), k[0]) )     
+
+    return sorted( result, key = lambda a: a[0] )
 
 def sort_cards( hand: list[Card] ) -> list[Card]: 
     return sorted( hand, key= lambda a: values_rank[a[0]]) 
@@ -45,6 +63,9 @@ def is_straight( hand: list[Card]) -> bool:
     return True
 
 
+def is_royal_flush( hand: list[Card]) -> bool: 
+    hand2 = sort_cards(hand)
+    return is_straight(hand2) and is_flush(hand2) and hand2[-1][0]=='A'
 
 
 import sys
@@ -71,12 +92,29 @@ class Tests(unittest.TestCase):
         hand = "2C 3S 4H 5C AS".split()
         self.assertEqual( is_straight(hand=hand), False )
 
+    def test_is_royal_flush(self):
+        hand = "2C 3S 4H 5C 6S".split()
+        self.assertEqual( is_royal_flush(hand=hand), False )
+        hand = "AH JH KH QH TH".split()
+        self.assertEqual( is_royal_flush(hand=hand), True )
+
+    def test_detect_tuple(self): 
+        hand = "2C 2S 4H 5C 6S".split()
+        self.assertEqual( detect_tuple(hand=hand), [(2,'2')]  )
+        hand = "2C 2S 4H 4C 4S".split()
+        self.assertEqual( detect_tuple(hand=hand), [(2,'2'), (3,'4')] )
+      
+
+
 #def get_rank( hand: str ): 
     # 1: high card
     # 2: one pair 
     # 3: two pairs 
     # 4: three of a kind 
     # 5: straight
+
+def get_ranking( hand: list[Card]):
+    return 0
 
 
 
