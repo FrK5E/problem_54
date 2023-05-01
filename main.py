@@ -24,10 +24,14 @@ class Ranking:
             hand1 = sort_cards(hand) 
             self.primary_sign = 1 
             self.secondary_sign = values_rank[ hand1[0][0] ]
-        
+
+def validate_hand( hand: list[Card]):
+    if not len(hand) == len(set(hand)): 
+        raise Exception( "validation failed") 
 
 
 def detect_tuple( hand: list[Card] ):
+    validate_hand(hand)
     result = []
     trial = {}  
     for c in hand:
@@ -46,7 +50,8 @@ def sort_cards( hand: list[Card] ) -> list[Card]:
     return sorted( hand, key= lambda a: values_rank[a[0]]) 
 
 
-def is_flush( hand: list[Card] ) -> bool: 
+def is_flush( hand: list[Card] ) -> bool:
+    validate_hand(hand) 
     first_card_suite = hand[0][1]
     for ( i, c) in enumerate( hand[1:]):
         if c[1]!=first_card_suite: 
@@ -54,6 +59,7 @@ def is_flush( hand: list[Card] ) -> bool:
     return True
 
 def is_straight( hand: list[Card]) -> bool:
+    validate_hand(hand)
     hand2 = sort_cards( hand ) 
     k = values_rank[hand2[0][0]]
     for (i,c) in enumerate( hand2[1:]):
@@ -103,6 +109,8 @@ class Tests(unittest.TestCase):
         self.assertEqual( detect_tuple(hand=hand), [(2,'2')]  )
         hand = "2C 2S 4H 4C 4S".split()
         self.assertEqual( detect_tuple(hand=hand), [(2,'2'), (3,'4')] )
+        hand = "2C 2S 2H 2D 4S".split()
+        self.assertEqual( detect_tuple(hand=hand), [(4,'2')] )
       
 
 
@@ -124,14 +132,14 @@ def player_1_wins( line ):
 
     k = len(line) // 2
 
-    list1 = line[0:k]
-    list2 = line[k:]
+    hand1 = line[0:k].split()
+    hand2 = line[k:].split()
 
-    k1 = sort_cards( list1.split() )
-    k2 = sort_cards( list2.split() )
+    k1 = sort_cards( hand1 )
+    k2 = sort_cards( hand2 )
 
-    print( "hand1", list1, "sorted_hand_1", k1 )
-    print( "hand1", list1, detect_tuple(list1), "hand2", list2, detect_tuple(list2))
+    print( "hand1", hand1, "sorted_hand_1", k1 )
+    print( "hand1", hand1, detect_tuple(hand1), "hand2", hand2, detect_tuple(hand2))
     
 
     return 1
