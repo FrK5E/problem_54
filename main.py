@@ -15,24 +15,34 @@ Card = str
 
 class Ranking: 
     def __init__(self, hand ): 
-        self.primary_sign = 100
-        tuples = detect_tuple(hand)
+        self.primary_sign = [100, "N/A"] # related to the ranking of highest artifact
+        self.secondary_sign = 0 # related to the ranking of highest card outside of the primary articact 
+        tuples = detect_tuples(hand)
         if is_royal_flush(hand): 
-            self.primary_sign = 0
+            self.primary_sign[0] = 0
             self.secondary_sign = []
         elif is_straight(hand) and is_flush(hand):
             hand1 = sort_cards(hand) 
-            self.primary_sign = 1 
-            self.secondary_sign = values_rank[ hand1[0][0] ]
+            self.primary_sign[0] = 1 
+            self.primary_sign[1] = values_rank[ hand1[0][0] ]
+        elif tuples[0][0] == 4: 
+            #four of a kind
+            self.primary_sign[0] = 2 
+            self.primary_sign[1] = values_rank[ tuples[0][1]]
+            self.secondary_sign = None # todo: we should extract the fifth card value... 
+
+
+
 
 def validate_hand( hand: list[Card]):
     if not len(hand) == len(set(hand)): 
         raise Exception( "validation failed") 
 
 
-def detect_tuple( hand: list[Card] ):
+def detect_tuples( hand: list[Card] ):
     validate_hand(hand)
-    result = []
+    tuples = []
+    singles = []
     trial = {}  
     for c in hand:
         key = c[0]
@@ -42,9 +52,13 @@ def detect_tuple( hand: list[Card] ):
         
     for k in trial.keys(): 
         if len( trial[k])>1: 
-            result.append( (len(trial[k]), k[0]) )     
+            tuples.append( (len(trial[k]), k[0]) )     
 
-    return sorted( result, key = lambda a: a[0] )
+    for k in trial.values():
+        if len(k)==1: 
+            singles.append( values_rank[list(k)[0][0]])
+
+    return ( sorted( tuples, key = lambda a: a[0] ), sorted( singles, reverse=True ) )
 
 def sort_cards( hand: list[Card] ) -> list[Card]: 
     return sorted( hand, key= lambda a: values_rank[a[0]]) 
@@ -106,11 +120,13 @@ class Tests(unittest.TestCase):
 
     def test_detect_tuple(self): 
         hand = "2C 2S 4H 5C 6S".split()
-        self.assertEqual( detect_tuple(hand=hand), [(2,'2')]  )
+        self.assertEqual( detect_tuples(hand=hand)[0], [(2,'2')]  )
+        self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['6'], values_rank['5'], values_rank['4']])
         hand = "2C 2S 4H 4C 4S".split()
-        self.assertEqual( detect_tuple(hand=hand), [(2,'2'), (3,'4')] )
+        self.assertEqual( detect_tuples(hand=hand)[0], [(2,'2'), (3,'4')] )
         hand = "2C 2S 2H 2D 4S".split()
-        self.assertEqual( detect_tuple(hand=hand), [(4,'2')] )
+        self.assertEqual( detect_tuples(hand=hand)[0], [(4,'2')] )
+        self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['4']] )
       
 
 
@@ -139,7 +155,7 @@ def player_1_wins( line ):
     k2 = sort_cards( hand2 )
 
     print( "hand1", hand1, "sorted_hand_1", k1 )
-    print( "hand1", hand1, detect_tuple(hand1), "hand2", hand2, detect_tuple(hand2))
+    print( "hand1", hand1, detect_tuples(hand1), "hand2", hand2, detect_tuples(hand2))
     
 
     return 1
