@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 
 
 def get_values_rank():
@@ -13,24 +13,35 @@ values_rank = get_values_rank()
 
 Card = str
 
+
 class Ranking: 
     def __init__(self, hand ): 
         self.primary_sign = [100, "N/A"] # related to the ranking of highest artifact
         self.secondary_sign = 0 # related to the ranking of highest card outside of the primary articact 
-        tuples = detect_tuples(hand)
+        (tuples, secondary) = detect_tuples(hand)
         if is_royal_flush(hand): 
             self.primary_sign[0] = 0
             self.secondary_sign = []
         elif is_straight(hand) and is_flush(hand):
             hand1 = sort_cards(hand) 
             self.primary_sign[0] = 1 
-            self.primary_sign[1] = values_rank[ hand1[0][0] ]
-        elif tuples[0][0] == 4: 
+            self.primary_sign[1] = values_rank[ hand1[-1][0] ]
+        elif len(tuples)>0 and tuples[0][0] == 4: 
             #four of a kind
             self.primary_sign[0] = 2 
             self.primary_sign[1] = values_rank[ tuples[0][1]]
-            self.secondary_sign = None # todo: we should extract the fifth card value... 
+            self.secondary_sign = secondary
 
+    def stronger_than( self, other: Ranking ): 
+        if  self.primary_sign[0] < other.primary_sign[0]: 
+            return True
+        elif self.primary_sign[0] == other.primary_sign[0]: 
+            if self.primary_sign[1] > other.primary_sign[1]: 
+                return True
+            elif self.primary_sign[1] == other.primary_sign[1]: 
+                return self.stronger_secondary( other )
+
+        return False 
 
 
 
@@ -127,6 +138,18 @@ class Tests(unittest.TestCase):
         hand = "2C 2S 2H 2D 4S".split()
         self.assertEqual( detect_tuples(hand=hand)[0], [(4,'2')] )
         self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['4']] )
+
+    def test_Ranking_1(self): 
+        R1 = Ranking( "AH JH KH QH TH".split() ) #royal flush 
+        R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight 
+        self.assertEqual( R1.stronger_than(R2), True )
+
+        R1 = Ranking( "4C 5C 6C 7C 3C".split() ) #straight 
+        R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight 
+        self.assertEqual( R1.stronger_than(R2), True )
+
+
+
       
 
 
