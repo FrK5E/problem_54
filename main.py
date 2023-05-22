@@ -31,6 +31,11 @@ class Ranking:
             self.primary_sign[0] = 2 
             self.primary_sign[1] = values_rank[ tuples[0][1]]
             self.secondary_sign = secondary
+        elif len(tuples)==2 and tuples[0][0] == 3:
+            #this implies full house
+            self.primary_sign[0] = 3
+            self.primary_sign[1] = values_rank[ tuples[0][1]]
+            self.secondary_sign = values_rank[tuples[1][1]]  
 
     def stronger_than( self, other: Ranking ): 
         if  self.primary_sign[0] < other.primary_sign[0]: 
@@ -39,8 +44,15 @@ class Ranking:
             if self.primary_sign[1] > other.primary_sign[1]: 
                 return True
             elif self.primary_sign[1] == other.primary_sign[1]: 
-                return self.stronger_secondary( other )
+                return self.__stronger_secondary( other )
 
+        return False 
+    
+    def __stronger_secondary( self, other: Ranking ): 
+        if self.secondary_sign > other.secondary_sign: 
+            return True
+        elif self.secondary_sign == other.secondary_sign: 
+            raise Exception( "same secondary sign, should not happen!")
         return False 
 
 
@@ -69,7 +81,7 @@ def detect_tuples( hand: list[Card] ):
         if len(k)==1: 
             singles.append( values_rank[list(k)[0][0]])
 
-    return ( sorted( tuples, key = lambda a: a[0] ), sorted( singles, reverse=True ) )
+    return ( sorted( tuples, key = lambda a: a[0], reverse=True ), sorted( singles, reverse=True ) )
 
 def sort_cards( hand: list[Card] ) -> list[Card]: 
     return sorted( hand, key= lambda a: values_rank[a[0]]) 
@@ -134,7 +146,7 @@ class Tests(unittest.TestCase):
         self.assertEqual( detect_tuples(hand=hand)[0], [(2,'2')]  )
         self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['6'], values_rank['5'], values_rank['4']])
         hand = "2C 2S 4H 4C 4S".split()
-        self.assertEqual( detect_tuples(hand=hand)[0], [(2,'2'), (3,'4')] )
+        self.assertEqual( detect_tuples(hand=hand)[0], [(3,'4'), (2,'2')] )
         hand = "2C 2S 2H 2D 4S".split()
         self.assertEqual( detect_tuples(hand=hand)[0], [(4,'2')] )
         self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['4']] )
@@ -143,10 +155,34 @@ class Tests(unittest.TestCase):
         R1 = Ranking( "AH JH KH QH TH".split() ) #royal flush 
         R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight 
         self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
 
-        R1 = Ranking( "4C 5C 6C 7C 3C".split() ) #straight 
-        R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight 
+        R1 = Ranking( "4C 5C 6C 7C 3C".split() ) #straight flush 
+        R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight flush
         self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "5C 5H 5S 5D 3C".split() ) #four fives
+        R2 = Ranking( "4C 4H 4S 4D 3C".split() ) #four fours 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 4H 4S 4D 5C".split() ) #four fours and a five
+        R2 = Ranking( "4C 4H 4S 4D 3C".split() ) #four fours and a three
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "5C 5H 5S 3D 3C".split() ) #full house
+        R2 = Ranking( "4C 4H 4S 2D 2C".split() ) #full house
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "5C 5H 5S 6D 6C".split() ) #full house
+        R2 = Ranking( "5C 5H 5S 3D 3C".split() ) #full house
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        
 
 
 
