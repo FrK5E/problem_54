@@ -36,6 +36,25 @@ class Ranking:
             self.primary_sign[0] = 3
             self.primary_sign[1] = values_rank[ tuples[0][1]]
             self.secondary_sign = values_rank[tuples[1][1]]  
+        elif is_flush(hand): 
+            self.primary_sign[0] = 4
+            hand1 = sort_cards(hand)
+            self.primary_sign[1] = values_rank[ hand1[-1][0]]
+            self.secondary_sign = values_rank[ hand1[-2][0]]
+        elif is_straight(hand):
+            self.primary_sign[0] = 5
+            hand1 = sort_cards(hand)
+            self.primary_sign[1] = values_rank[ hand1[-1][0]]
+        elif len(tuples)==1 and tuples[0][0]==3:
+            self.primary_sign[0] = 6
+            self.primary_sign[1] = values_rank[tuples[0][1]]
+            self.secondary_sign = secondary
+        elif len(tuples)==2 and tuples[0][0]==2 and tuples[1][0] == 2: 
+            self.primary_sign[0] = 7
+            self.primary_sign[1] = values_rank[tuples[0][1]]
+            self.secondary_sign = values_rank[tuples[1][1]]
+             
+
 
     def stronger_than( self, other: Ranking ): 
         if  self.primary_sign[0] < other.primary_sign[0]: 
@@ -80,6 +99,8 @@ def detect_tuples( hand: list[Card] ):
     for k in trial.values():
         if len(k)==1: 
             singles.append( values_rank[list(k)[0][0]])
+
+    tuples = sorted( tuples, key = lambda a: values_rank[a[1]], reverse=True )
 
     return ( sorted( tuples, key = lambda a: a[0], reverse=True ), sorted( singles, reverse=True ) )
 
@@ -150,6 +171,11 @@ class Tests(unittest.TestCase):
         hand = "2C 2S 2H 2D 4S".split()
         self.assertEqual( detect_tuples(hand=hand)[0], [(4,'2')] )
         self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['4']] )
+        for k in ["2C 2S 3H 3D 4S", "3H 3D 4S 2C 2S" ]: 
+            hand = k.split()
+            self.assertEqual( detect_tuples(hand=hand)[0], [(2,'3'), (2,'2')] )
+            self.assertEqual( detect_tuples(hand=hand)[1], [values_rank['4']] )
+
 
     def test_Ranking_1(self): 
         R1 = Ranking( "AH JH KH QH TH".split() ) #royal flush 
@@ -182,7 +208,40 @@ class Tests(unittest.TestCase):
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
 
-        
+        R1 = Ranking( "2C 3C 6C 7C 9C".split() ) #flush
+        R2 = Ranking( "2H 3H 6H 7H 8H".split() ) #flush
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "2C 3C 6C 8C 9C".split() ) #flush
+        R2 = Ranking( "2H 3H 6H 7H 9H".split() ) #flush
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 5H 6C 7S 3C".split() ) #straight 
+        R2 = Ranking( "4D 5D 6C 2C 3C".split() ) #straight
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 4H 4S 7S 3C".split() ) #three of a kind 
+        R2 = Ranking( "3D 3H 3C 2C TC".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 4H 4S 8S 3C".split() ) #three of a kind 
+        R2 = Ranking( "4C 4H 4S 7S 3C".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 4H 5S 5D 3C".split() ) #two pairs 
+        R2 = Ranking( "4C 4H 2S 2D 3C".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+
+        R1 = Ranking( "4C 4H 5S 5D 3C".split() ) #two pairs 
+        R2 = Ranking( "3C 3H 5S 5D TC".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
 
 
 
