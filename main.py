@@ -53,7 +53,15 @@ class Ranking:
             self.primary_sign[0] = 7
             self.primary_sign[1] = values_rank[tuples[0][1]]
             self.secondary_sign = values_rank[tuples[1][1]]
-             
+        elif len(tuples)==1 and tuples[0][0]==2:
+            self.primary_sign[0] = 8
+            self.primary_sign[1] = values_rank[tuples[0][1]]
+            self.secondary_sign = secondary
+        else: 
+            hand1 = sort_cards(hand)
+            self.primary_sign[0] = 9 
+            self.primary_sign[1] = values_rank[hand1[-1][0]]
+            self.secondary_sign = values_rank[ hand1[-2][0]]
 
 
     def stronger_than( self, other: Ranking ): 
@@ -66,6 +74,9 @@ class Ranking:
                 return self.__stronger_secondary( other )
 
         return False 
+    
+    def getPrimarySign( self ): 
+        return self.primary_sign[0]
     
     def __stronger_secondary( self, other: Ranking ): 
         if self.secondary_sign > other.secondary_sign: 
@@ -182,68 +193,117 @@ class Tests(unittest.TestCase):
         R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 0 )
+        self.assertEqual( R2.getPrimarySign(), 1 )
 
         R1 = Ranking( "4C 5C 6C 7C 3C".split() ) #straight flush 
         R2 = Ranking( "4C 5C 6C 2C 3C".split() ) #straight flush
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 1 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "5C 5H 5S 5D 3C".split() ) #four fives
         R2 = Ranking( "4C 4H 4S 4D 3C".split() ) #four fours 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 2 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
+
 
         R1 = Ranking( "4C 4H 4S 4D 5C".split() ) #four fours and a five
         R2 = Ranking( "4C 4H 4S 4D 3C".split() ) #four fours and a three
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 2 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
+
 
         R1 = Ranking( "5C 5H 5S 3D 3C".split() ) #full house
         R2 = Ranking( "4C 4H 4S 2D 2C".split() ) #full house
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 3 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
+
 
         R1 = Ranking( "5C 5H 5S 6D 6C".split() ) #full house
         R2 = Ranking( "5C 5H 5S 3D 3C".split() ) #full house
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 3 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
+
 
         R1 = Ranking( "2C 3C 6C 7C 9C".split() ) #flush
         R2 = Ranking( "2H 3H 6H 7H 8H".split() ) #flush
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 4 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "2C 3C 6C 8C 9C".split() ) #flush
         R2 = Ranking( "2H 3H 6H 7H 9H".split() ) #flush
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 4 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "4C 5H 6C 7S 3C".split() ) #straight 
         R2 = Ranking( "4D 5D 6C 2C 3C".split() ) #straight
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 5 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "4C 4H 4S 7S 3C".split() ) #three of a kind 
         R2 = Ranking( "3D 3H 3C 2C TC".split() ) 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 6 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "4C 4H 4S 8S 3C".split() ) #three of a kind 
         R2 = Ranking( "4C 4H 4S 7S 3C".split() ) 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 6 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "4C 4H 5S 5D 3C".split() ) #two pairs 
         R2 = Ranking( "4C 4H 2S 2D 3C".split() ) 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 7 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
         R1 = Ranking( "4C 4H 5S 5D 3C".split() ) #two pairs 
         R2 = Ranking( "3C 3H 5S 5D TC".split() ) 
         self.assertEqual( R1.stronger_than(R2), True )
         self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 7 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
+        R1 = Ranking( "4C 4H 5S 8D 3C".split() ) #one pair 
+        R2 = Ranking( "3C 3H 5S 9D TC".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 8 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
+        R1 = Ranking( "4C 4H 5S 9D 3C".split() ) #one pair 
+        R2 = Ranking( "4C 4H 5S 8D 3C".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 8 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
+
+        R1 = Ranking( "4C AH 5S 9D 3C".split() ) #high card 
+        R2 = Ranking( "4C KH 5S 8D 3C".split() ) 
+        self.assertEqual( R1.stronger_than(R2), True )
+        self.assertEqual( R2.stronger_than(R1), False )
+        self.assertEqual( R1.getPrimarySign(), 9 )
+        self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
       
 
