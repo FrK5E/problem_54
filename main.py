@@ -305,38 +305,19 @@ class Tests(unittest.TestCase):
         self.assertEqual( R1.getPrimarySign(), 9 )
         self.assertEqual( R1.getPrimarySign(), R2.getPrimarySign() )
 
-      
-
-
-#def get_rank( hand: str ): 
-    # 1: high card
-    # 2: one pair 
-    # 3: two pairs 
-    # 4: three of a kind 
-    # 5: straight
-
-def get_ranking( hand: list[Card]):
-    return 0
-
 
 
 def player_1_wins( line ): 
-    suits = [ 'H', 'C', 'S', 'D'] # Hearts, Clubs, Spades, Diamonds
-    values = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-
     k = len(line) // 2
 
     hand1 = line[0:k].split()
     hand2 = line[k:].split()
 
-    k1 = sort_cards( hand1 )
-    k2 = sort_cards( hand2 )
+    r1 = Ranking( hand1 )
+    r2 = Ranking( hand2 )
 
-    print( "hand1", hand1, "sorted_hand_1", k1 )
-    print( "hand1", hand1, detect_tuples(hand1), "hand2", hand2, detect_tuples(hand2))
     
-
-    return 1
+    return r1.stronger_than(r2)
 
 if __name__=="__main__":
 
@@ -348,10 +329,9 @@ if __name__=="__main__":
     f = open('p054_poker.txt')
     lines = f.readlines()
 
-
     count = 0
-    for l in lines[0:50]: 
-        count = count + player_1_wins( l )
+    for line in lines: 
+        if player_1_wins(line):
+            count = count + 1
 
-
-    print( count )
+    print( "result: ", count )
